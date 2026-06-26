@@ -1,0 +1,37 @@
+@model IEnumerable<JobPrepPortal.Models.CompanyProfile>
+
+@{
+    ViewData["Title"] = "Top Companies";
+}
+
+<div class="mb-5 animate-fade-in">
+    <h1>Target Your Dream Company</h1>
+    <p class="text-muted">Understand the exam patterns, syllabus, and eligibility criteria of top tech giants.</p>
+</div>
+
+<div class="feature-grid">
+    @if (Model.Any())
+    {
+        @foreach (var item in Model)
+        {
+            <div class="glass-card animate-fade-in">
+                <h3 class="text-white mb-3">@item.Name</h3>
+                <div class="mb-4">
+                    <p class="text-muted mb-1 small uppercase fw-bold">Exam Pattern</p>
+                    <p class="text-white small">@item.ExamPattern</p>
+                </div>
+                <div class="mb-4">
+                    <p class="text-muted mb-1 small uppercase fw-bold">Eligibility</p>
+                    <p class="text-white small">@item.Eligibility</p>
+                </div>
+                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary w-100">View Hiring Process</a>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="glass-card text-center w-100 py-5">
+            <p class="text-muted">Stay tuned! Company insights are being added daily.</p>
+        </div>
+    }
+</div>

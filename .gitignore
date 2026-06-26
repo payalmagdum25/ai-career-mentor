@@ -1,0 +1,22 @@
+# Visual Studio / .NET Core
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Node / Frontend
+node_modules/
+client-app/node_modules/
+client-app/dist/
+.env
+.env.local
+.env.*.local
+
+# OS Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store

@@ -1,0 +1,108 @@
+@model JobPrepPortal.Models.Job
+
+@{
+    ViewData["Title"] = Model.Title + " - Job Details";
+}
+
+<div class="animate-fade-in">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index" class="text-accent text-decoration-none">Job Portal</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page">Job Details</li>
+        </ol>
+    </nav>
+
+    <div class="glass-card mb-5">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-primary me-3">@Model.Type</span>
+                    <span class="text-muted">Posted on @Model.PostedDate.ToString("MMMM dd, yyyy")</span>
+                </div>
+                <h1 class="mb-2">@Model.Title</h1>
+                <h3 class="text-accent mb-0">@Model.Company</h3>
+            </div>
+            <div class="col-md-4 text-md-end mt-4 mt-md-0">
+                @if (!string.IsNullOrEmpty(Model.ApplicationUrl))
+                {
+                    <a href="@Model.ApplicationUrl" target="_blank" class="btn btn-primary btn-lg">Apply Now</a>
+                }
+                else
+                {
+                    <button class="btn btn-primary btn-lg" disabled>Apply via Portal</button>
+                }
+            </div>
+        </div>
+
+        <hr class="my-4" style="border-color: var(--glass-border);">
+
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.03);">
+                    <h5 class="text-white mb-3">Job Overview</h5>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box me-3">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Location</p>
+                            <p class="mb-0">@(Model.Location ?? "Remote")</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box me-3">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Salary Range</p>
+                            <p class="mb-0">@(Model.Salary ?? "Not Disclosed")</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box me-3">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Employment Type</p>
+                            <p class="mb-0">@Model.Type</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <h4 class="text-white mb-4">Job Description</h4>
+                <div class="job-description text-muted" style="line-height: 1.8;">
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        @Html.Raw(Model.Description.Replace("\n", "<br/>"))
+                    }
+                    else
+                    {
+                        <p>No description available for this role.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .icon-box {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(56, 189, 248, 0.1);
+        border-radius: 10px;
+    }
+    .text-accent {
+        color: var(--accent);
+    }
+    .breadcrumb-item + .breadcrumb-item::before {
+        color: var(--text-muted);
+    }
+</style>

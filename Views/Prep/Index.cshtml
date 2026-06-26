@@ -1,0 +1,35 @@
+@model IEnumerable<string>
+
+@{
+    ViewData["Title"] = "Preparation Hub";
+}
+
+<div class="mb-5 animate-fade-in">
+    <h1>Preparation Hub</h1>
+    <p class="text-muted">Master every round of the interview process with our structured resources.</p>
+</div>
+
+<div class="feature-grid">
+    @{
+        var categories = new[] { 
+            new { Name = "Aptitude", Icon = "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" },
+            new { Name = "DSA", Icon = "M22 12h-4l-3 9L9 3l-3 9H2" },
+            new { Name = "Technical", Icon = "M16 18l6-6-6-6M8 6l-6 6 6 6" },
+            new { Name = "HR", Icon = "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" }
+        };
+    }
+
+    @foreach (var cat in categories)
+    {
+        <div class="glass-card text-center animate-fade-in">
+            <div class="mb-4">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                    <path d="@cat.Icon"></path>
+                </svg>
+            </div>
+            <h3>@cat.Name</h3>
+            <p class="text-muted">Comprehensive notes and practice problems for @cat.Name.</p>
+            <a asp-action="Category" asp-route-id="@cat.Name" class="btn btn-outline-light w-100">Explore @cat.Name</a>
+        </div>
+    }
+</div>

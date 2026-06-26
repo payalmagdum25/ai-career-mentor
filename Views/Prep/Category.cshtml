@@ -1,0 +1,54 @@
+@model IEnumerable<JobPrepPortal.Models.PrepMaterial>
+
+@{
+    ViewData["Title"] = ViewBag.Category + " Preparation";
+}
+
+<div class="animate-fade-in">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index" class="text-accent text-decoration-none">Preparation Hub</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page">@ViewBag.Category</li>
+        </ol>
+    </nav>
+
+    <div class="mb-5">
+        <h1>@ViewBag.Category Resources</h1>
+        <p class="text-muted">Structured study material to help you excel in @ViewBag.Category rounds.</p>
+    </div>
+
+    <div class="feature-grid">
+        @if (Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <div class="glass-card animate-fade-in">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge @(item.Difficulty == "Easy" ? "bg-success" : item.Difficulty == "Medium" ? "bg-warning" : "bg-danger")">@item.Difficulty</span>
+                        <span class="text-muted small">@item.CreatedDate.ToString("MMM dd, yyyy")</span>
+                    </div>
+                    <h4 class="mb-3 text-white">@item.Title</h4>
+                    <p class="text-muted small mb-4">
+                        @(item.Content?.Length > 100 ? item.Content.Substring(0, 100) + "..." : item.Content)
+                    </p>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-light w-100">Study Now</a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="glass-card text-center w-100 py-5">
+                <p class="text-muted">No materials found for this category yet. Check back soon!</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .text-accent {
+        color: var(--accent);
+    }
+    .breadcrumb-item + .breadcrumb-item::before {
+        color: var(--text-muted);
+    }
+</style>

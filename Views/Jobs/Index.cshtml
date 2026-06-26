@@ -1,0 +1,41 @@
+@model IEnumerable<JobPrepPortal.Models.Job>
+
+@{
+    ViewData["Title"] = "Job Portal";
+}
+
+<div class="mb-5 animate-fade-in">
+    <h1>Explore Opportunities</h1>
+    <p class="text-muted">Find the perfect role that matches your skills and ambitions.</p>
+</div>
+
+<div class="feature-grid">
+    @if (Model.Any())
+    {
+        @foreach (var item in Model)
+        {
+            <div class="glass-card animate-fade-in">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="badge bg-primary">@item.Type</span>
+                    <span class="text-muted small">@item.PostedDate.ToString("MMM dd")</span>
+                </div>
+                <h4 class="mb-1 text-white">@item.Title</h4>
+                <p class="text-primary fw-bold mb-3">@item.Company</p>
+                <div class="d-flex align-items-center text-muted small mb-4">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    @item.Location
+                    <span class="mx-2">|</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    @item.Salary
+                </div>
+                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-light w-100">View Details</a>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="glass-card text-center w-100 py-5">
+            <p class="text-muted">No jobs found. Check back later!</p>
+        </div>
+    }
+</div>

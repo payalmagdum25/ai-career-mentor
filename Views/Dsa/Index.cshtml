@@ -1,0 +1,53 @@
+@model IEnumerable<IGrouping<string, JobPrepPortal.Models.DsaProblem>>
+
+@{
+    ViewData["Title"] = "DSA Sheet";
+}
+
+<div class="mb-5 animate-fade-in">
+    <h1>Ultimate DSA Sheet</h1>
+    <p class="text-muted">Master Data Structures and Algorithms with this curated topic-wise list of problems.</p>
+</div>
+
+@if (Model.Any())
+{
+    @foreach (var group in Model)
+    {
+        <div class="glass-card mb-4 animate-fade-in">
+            <h3 class="mb-4 text-white">@group.Key</h3>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th class="border-0 text-muted">Problem Title</th>
+                            <th class="border-0 text-muted">Difficulty</th>
+                            <th class="border-0 text-muted">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var problem in group)
+                        {
+                            <tr>
+                                <td class="border-bottom-0 py-3">@problem.Title</td>
+                                <td class="border-bottom-0 py-3">
+                                    <span class="badge @(problem.Difficulty == "Easy" ? "bg-success" : (problem.Difficulty == "Medium" ? "bg-warning" : "bg-danger"))">
+                                        @problem.Difficulty
+                                    </span>
+                                </td>
+                                <td class="border-bottom-0 py-3">
+                                    <a href="@problem.Link" target="_blank" class="btn btn-sm btn-primary">Solve Now</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="glass-card text-center py-5">
+        <p class="text-muted">DSA problems are being compiled. Get ready to code!</p>
+    </div>
+}

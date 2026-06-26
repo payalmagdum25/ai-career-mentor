@@ -1,0 +1,74 @@
+@model JobPrepPortal.Models.PrepMaterial
+
+@{
+    ViewData["Title"] = Model.Title + " - Preparation Details";
+}
+
+<div class="animate-fade-in">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index" class="text-accent text-decoration-none">Preparation Hub</a></li>
+            <li class="breadcrumb-item"><a asp-action="Category" asp-route-id="@Model.Category" class="text-accent text-decoration-none">@Model.Category</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page">Details</li>
+        </ol>
+    </nav>
+
+    <div class="glass-card mb-5">
+        <div class="mb-4">
+            <span class="badge @(Model.Difficulty == "Easy" ? "bg-success" : Model.Difficulty == "Medium" ? "bg-warning" : "bg-danger") mb-3">@Model.Difficulty</span>
+            <h1>@Model.Title</h1>
+        </div>
+
+        <div class="prep-content text-muted mb-5" style="line-height: 1.8; font-size: 1.1rem;">
+            @if (!string.IsNullOrEmpty(Model.Content))
+            {
+                @Html.Raw(Model.Content.Replace("\n", "<br/>"))
+            }
+            else
+            {
+                <p>No detailed content available for this topic yet.</p>
+            }
+        </div>
+
+        @if (Model.PracticeProblems != null && Model.PracticeProblems.Any())
+        {
+            <hr class="my-5" style="border-color: var(--glass-border);">
+            <h3 class="text-white mb-4">Practice Problems</h3>
+            <div class="row">
+                @foreach (var problem in Model.PracticeProblems)
+                {
+                    <div class="col-12 mb-4">
+                        <div class="p-4 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);">
+                            <h5 class="text-accent mb-3">@problem.ProblemTitle</h5>
+                            <p class="text-muted mb-4">@problem.ProblemDescription</p>
+                            
+                            <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#solution-@problem.Id">
+                                View Solution
+                            </button>
+                            
+                            <div class="collapse mt-3" id="solution-@problem.Id">
+                                <div class="p-3 rounded-3" style="background: rgba(0,0,0,0.2); font-family: monospace;">
+                                    @Html.Raw(problem.Solution?.Replace("\n", "<br/>"))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .text-accent {
+        color: var(--accent);
+    }
+    .breadcrumb-item + .breadcrumb-item::before {
+        color: var(--text-muted);
+    }
+    .prep-content br {
+        margin-bottom: 1rem;
+        display: block;
+        content: "";
+    }
+</style>
