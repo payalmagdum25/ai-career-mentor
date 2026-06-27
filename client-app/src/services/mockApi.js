@@ -19,10 +19,46 @@ const setStorageItem = (key, value) => {
 
 // Seed Data
 const defaultProblems = [
-  { id: 1, title: 'Two Sum', difficulty: 'Easy', topic: 'Arrays', description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.', template: 'function twoSum(nums, target) {\n  // Write your code here\n}' },
-  { id: 2, title: 'Valid Parentheses', difficulty: 'Easy', topic: 'Stacks', description: 'Given a string s containing just the characters \'(\', \')\', \'{\', \'}\', \'[\' and \']\', determine if the input string is valid.', template: 'function isValid(s) {\n  // Write your code here\n}' },
-  { id: 3, title: 'Reverse Linked List', difficulty: 'Easy', topic: 'Linked List', description: 'Given the head of a singly linked list, reverse the list, and return the reversed list.', template: 'function reverseList(head) {\n  // Write your code here\n}' },
-  { id: 4, title: 'Longest Substring Without Repeating Characters', difficulty: 'Medium', topic: 'Sliding Window', description: 'Given a string s, find the length of the longest substring without repeating characters.', template: 'function lengthOfLongestSubstring(s) {\n  // Write your code here\n}' }
+  { 
+    id: 1, 
+    title: 'Two Sum', 
+    difficulty: 'Easy', 
+    topic: 'Arrays', 
+    description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.', 
+    template: 'function twoSum(nums, target) {\n  // Write your code here\n}',
+    exampleInput: 'nums = [2,7,11,15], target = 9',
+    exampleOutput: '[0, 1]'
+  },
+  { 
+    id: 2, 
+    title: 'Valid Parentheses', 
+    difficulty: 'Easy', 
+    topic: 'Stacks', 
+    description: 'Given a string s containing just the characters \'(\', \')\', \'{\', \'}\', \'[\' and \']\', determine if the input string is valid.', 
+    template: 'function isValid(s) {\n  // Write your code here\n}',
+    exampleInput: 's = "()[]{}"',
+    exampleOutput: 'true'
+  },
+  { 
+    id: 3, 
+    title: 'Reverse Linked List', 
+    difficulty: 'Easy', 
+    topic: 'Linked List', 
+    description: 'Given the head of a singly linked list, reverse the list, and return the reversed list.', 
+    template: 'function reverseList(head) {\n  // Write your code here\n}',
+    exampleInput: 'head = [1,2,3,4,5]',
+    exampleOutput: '[5,4,3,2,1]'
+  },
+  { 
+    id: 4, 
+    title: 'Longest Substring Without Repeating Characters', 
+    difficulty: 'Medium', 
+    topic: 'Sliding Window', 
+    description: 'Given a string s, find the length of the longest substring without repeating characters.', 
+    template: 'function lengthOfLongestSubstring(s) {\n  // Write your code here\n}',
+    exampleInput: 's = "abcabcbb"',
+    exampleOutput: '3'
+  }
 ];
 
 const defaultJobs = [
@@ -33,11 +69,11 @@ const defaultJobs = [
 ];
 
 const defaultRoadmap = [
-  { id: 1, title: 'Master JavaScript Fundamentals', targetRole: 'Frontend Developer', targetSkills: 'React, JS', completed: true },
-  { id: 2, title: 'Learn Data Structures & Algorithms', targetRole: 'Frontend Developer', targetSkills: 'React, JS', completed: false },
-  { id: 3, title: 'Build 3 Glassmorphic React Apps', targetRole: 'Frontend Developer', targetSkills: 'React, JS', completed: false },
-  { id: 4, title: 'Solve 20 Coding Challenges', targetRole: 'Frontend Developer', targetSkills: 'React, JS', completed: false },
-  { id: 5, title: 'Mock Interview Prep & Resume ATS Optimization', targetRole: 'Frontend Developer', targetSkills: 'React, JS', completed: false }
+  { id: 1, task: 'Master JavaScript Fundamentals', targetRole: 'Full Stack Developer', targetSkills: 'React, C#, SQL Server', period: 'Daily', completed: true },
+  { id: 2, task: 'Learn Data Structures & Algorithms', targetRole: 'Full Stack Developer', targetSkills: 'React, C#, SQL Server', period: 'Daily', completed: false },
+  { id: 3, task: 'Build 3 Glassmorphic React Apps', targetRole: 'Full Stack Developer', targetSkills: 'React, C#, SQL Server', period: 'Weekly', completed: false },
+  { id: 4, task: 'Solve 20 Coding Challenges', targetRole: 'Full Stack Developer', targetSkills: 'React, C#, SQL Server', period: 'Weekly', completed: false },
+  { id: 5, task: 'Mock Interview Prep & Resume ATS Optimization', targetRole: 'Full Stack Developer', targetSkills: 'React, C#, SQL Server', period: 'Monthly', completed: false }
 ];
 
 const defaultNotifications = [
@@ -47,6 +83,29 @@ const defaultNotifications = [
 
 // Helper database initialization
 const initDb = () => {
+  const checkAndReset = (key, validator) => {
+    const data = localStorage.getItem(key);
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          if (!validator(parsed[0])) {
+            localStorage.removeItem(key);
+          }
+        }
+      } catch (e) {
+        localStorage.removeItem(key);
+      }
+    }
+  };
+
+  // Run validation/healing checks
+  checkAndReset('mock_resumes', (item) => item.resumeScore !== undefined && item.feedbacks !== undefined && item.feedbacks.length > 0 && item.feedbacks[0].suggestion !== undefined);
+  checkAndReset('mock_interviews', (item) => item.questions && Array.isArray(item.questions) && item.questions.length > 0 && item.questions[0].questionText !== undefined);
+  checkAndReset('mock_sessions', (item) => item.messages && Array.isArray(item.messages) && (item.messages.length === 0 || item.messages[0].message !== undefined));
+  checkAndReset('mock_roadmap', (item) => item.task !== undefined && item.period !== undefined);
+  checkAndReset('mock_problems', (item) => item.exampleInput !== undefined);
+
   getStorageItem('mock_users', [
     { id: 1, name: 'Jane Doe', email: 'jane@example.com', phone: '1234567890', password: 'password', role: 'Student' }
   ]);
@@ -86,17 +145,30 @@ const mapChatSession = (s) => {
 const mapResumeRecord = (h) => {
   if (!h) return h;
   const score = h.resumeScore !== undefined ? h.resumeScore : (h.atsScore || 75);
+  
+  let mappedFeedbacks = [];
+  if (h.feedbacks && Array.isArray(h.feedbacks) && h.feedbacks.length > 0) {
+    mappedFeedbacks = h.feedbacks.map(f => ({
+      category: f.category || 'General',
+      suggestion: f.suggestion || f.feedbackText || 'Optimize your resume sections for better readability.'
+    }));
+  } else {
+    mappedFeedbacks = [
+      { category: 'Structure', suggestion: h.feedback?.structure || 'Consider using a single-column layout. Avoid sidebars, graphs, or tables as ATS scanners often misread them.' },
+      { category: 'Keywords', suggestion: h.feedback?.keywords || 'Detected React, JavaScript, Git. Missing: Redux, TypeScript, Docker.' },
+      { category: 'Verbs', suggestion: h.feedback?.verbs || 'Good use of action verbs like "developed", "built", "implemented". Try adding metrics.' },
+      { category: 'Formatting', suggestion: 'Add a specialized skills section at the top.' },
+      { category: 'Structure', suggestion: 'Use the STAR format to detail your bullet points.' },
+      { category: 'Keywords', suggestion: 'Include keyword matches for "Rest APIs" and "State Management".' }
+    ];
+  }
+
   return {
     id: h.id,
     fileName: h.fileName || 'resume.pdf',
     resumeScore: score,
     createdDate: h.createdDate || h.analyzedDate || new Date().toISOString(),
-    feedbacks: h.feedbacks || [
-      { category: 'Structure', suggestion: h.feedback?.structure || 'Consider using a single-column layout.' },
-      { category: 'Keywords', suggestion: h.feedback?.keywords || 'Add relevant keywords.' },
-      { category: 'Verbs', suggestion: h.feedback?.verbs || 'Use strong action verbs.' },
-      ...(h.suggestions || []).map(s => ({ category: 'General', suggestion: s }))
-    ]
+    feedbacks: mappedFeedbacks
   };
 };
 
@@ -537,7 +609,7 @@ export const mockCodeApi = {
     // Update progress stats in dashboard
     if (isAccepted) {
       const roadmap = getStorageItem('mock_roadmap', []);
-      const codingTask = roadmap.find(t => t.title.includes('Coding'));
+      const codingTask = roadmap.find(t => (t.task || t.title || '').includes('Coding') || (t.task || t.title || '').includes('Challenges'));
       if (codingTask) {
         codingTask.completed = true;
         setStorageItem('mock_roadmap', roadmap);
@@ -565,11 +637,13 @@ export const mockRoadmapApi = {
   
   generate: async (targetRole, targetSkills) => {
     await delay(1500);
+    const skillsString = Array.isArray(targetSkills) ? targetSkills.join(', ') : targetSkills;
     const newTasks = [
-      { id: 1, title: `Learn core syntax for ${targetSkills}`, targetRole, targetSkills, completed: false },
-      { id: 2, title: `Build an advanced project using ${targetSkills}`, targetRole, targetSkills, completed: false },
-      { id: 3, title: `Solve DSA problems related to ${targetRole}`, targetRole, targetSkills, completed: false },
-      { id: 4, title: `Prepare HR behavioral answers for ${targetRole}`, targetRole, targetSkills, completed: false }
+      { id: 1, task: `Learn core syntax and fundamentals of ${skillsString}`, targetRole, targetSkills: skillsString, period: 'Daily', completed: false },
+      { id: 2, task: `Solve 5 basic programming questions in ${skillsString}`, targetRole, targetSkills: skillsString, period: 'Daily', completed: false },
+      { id: 3, task: `Build an advanced glassmorphic portfolio project showcasing ${skillsString}`, targetRole, targetSkills: skillsString, period: 'Weekly', completed: false },
+      { id: 4, task: `Solve 20 medium-difficulty coding challenges related to ${targetRole}`, targetRole, targetSkills: skillsString, period: 'Weekly', completed: false },
+      { id: 5, task: `Conduct a full simulated mock interview for a ${targetRole} position`, targetRole, targetSkills: skillsString, period: 'Monthly', completed: false }
     ];
     setStorageItem('mock_roadmap', newTasks);
     return newTasks;
@@ -578,9 +652,19 @@ export const mockRoadmapApi = {
   toggleTask: async (id) => {
     await delay(100);
     const roadmap = getStorageItem('mock_roadmap', []);
-    const updated = roadmap.map(t => t.id === Number(id) ? { ...t, completed: !t.completed } : t);
-    setStorageItem('mock_roadmap', updated);
-    return { success: true };
+    let updatedTask = null;
+    const updated = roadmap.map(t => {
+      if (t.id === Number(id)) {
+        t.completed = !t.completed;
+        updatedTask = t;
+      }
+      return t;
+    });
+    if (updatedTask) {
+      setStorageItem('mock_roadmap', updated);
+      return updatedTask;
+    }
+    return { id: Number(id), completed: true };
   }
 };
 
