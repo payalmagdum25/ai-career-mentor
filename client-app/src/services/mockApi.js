@@ -61,7 +61,70 @@ const initDb = () => {
 
 initDb();
 
+// Helper mappers for backward compatibility and model mapping
+const mapChatMessage = (m) => {
+  if (!m) return m;
+  const isAI = m.sender?.toLowerCase() === 'ai' || m.sender === 'AI' || m.sender === 'ai';
+  return {
+    id: m.id || Date.now(),
+    sender: isAI ? 'AI' : 'User',
+    message: m.message || m.messageText || '',
+    timestamp: m.timestamp || m.createdAt || new Date().toISOString()
+  };
+};
+
+const mapChatSession = (s) => {
+  if (!s) return s;
+  return {
+    id: s.id,
+    title: s.title || 'Career Advisory',
+    createdAt: s.createdAt || new Date().toISOString(),
+    messages: (s.messages || []).map(mapChatMessage)
+  };
+};
+
+const mapResumeRecord = (h) => {
+  if (!h) return h;
+  const score = h.resumeScore !== undefined ? h.resumeScore : (h.atsScore || 75);
+  return {
+    id: h.id,
+    fileName: h.fileName || 'resume.pdf',
+    resumeScore: score,
+    createdDate: h.createdDate || h.analyzedDate || new Date().toISOString(),
+    feedbacks: h.feedbacks || [
+      { category: 'Structure', suggestion: h.feedback?.structure || 'Consider using a single-column layout.' },
+      { category: 'Keywords', suggestion: h.feedback?.keywords || 'Add relevant keywords.' },
+      { category: 'Verbs', suggestion: h.feedback?.verbs || 'Use strong action verbs.' },
+      ...(h.suggestions || []).map(s => ({ category: 'General', suggestion: s }))
+    ]
+  };
+};
+
+const mapInterviewQuestion = (q) => {
+  if (!q) return q;
+  return {
+    id: q.id,
+    questionText: q.questionText || '',
+    userAnswer: q.userAnswer || null,
+    score: q.score || 0,
+    feedback: q.feedback || null
+  };
+};
+
+const mapInterviewSession = (i) => {
+  if (!i) return i;
+  return {
+    id: i.id,
+    technology: i.technology || 'General',
+    startedAt: i.startedAt || new Date().toISOString(),
+    isCompleted: i.isCompleted || false,
+    score: i.score !== undefined ? i.score : (i.overallScore || 0),
+    questions: (i.questions || []).map(mapInterviewQuestion)
+  };
+};
+
 // Mock API implementations
+
 export const mockAuthApi = {
   login: async (email, password) => {
     await delay();
@@ -148,7 +211,8 @@ export const mockProfileApi = {
 export const mockChatApi = {
   getSessions: async () => {
     await delay(300);
-    return getStorageItem('mock_sessions', []);
+    const sessions = getStorageItem('mock_sessions', []);
+    return sessions.map(mapChatSession);
   },
   
   getSessionDetails: async (sessionId) => {
@@ -156,7 +220,7 @@ export const mockChatApi = {
     const sessions = getStorageItem('mock_sessions', []);
     const session = sessions.find(s => s.id === Number(sessionId));
     if (!session) throw new Error('Session not found');
-    return session;
+    return mapChatSession(session);
   },
   
   createSession: async (title) => {
@@ -167,12 +231,12 @@ export const mockChatApi = {
       title: title || 'New Career Advice Chat',
       createdAt: new Date().toISOString(),
       messages: [
-        { id: 1, sender: 'ai', messageText: 'Hello! I am your AI Career Mentor. I can help you with resume writing, mock interview preparation, learning paths, or job searching. What is on your mind today?', createdAt: new Date().toISOString() }
+        { id: 1, sender: 'AI', message: 'Hello! I am your AI Career Mentor. I can help you with resume writing, mock interview preparation, learning paths, or job searching. What is on your mind today?', timestamp: new Date().toISOString() }
       ]
     };
     sessions.push(newSession);
     setStorageItem('mock_sessions', sessions);
-    return newSession;
+    return mapChatSession(newSession);
   },
   
   sendMessage: async (sessionId, messageText) => {
@@ -181,9 +245,8 @@ export const mockChatApi = {
     const sessionIndex = sessions.findIndex(s => s.id === Number(sessionId));
     if (sessionIndex === -1) throw new Error('Session not found');
     
-    const userMsg = { id: Date.now(), sender: 'user', messageText, createdAt: new Date().toISOString() };
+    const userMsg = { id: Date.now(), sender: 'User', message: messageText, timestamp: new Date().toISOString() };
     
-    // Simple rule-based AI response generation
     let aiResponseText = "That's a very good question. To succeed in your career, I recommend continuing to practice coding challenges, formatting your resume with action verbs, and building glassmorphism portfolio projects to stand out.";
     
     const lower = messageText.toLowerCase();
@@ -197,12 +260,16 @@ export const mockChatApi = {
       aiResponseText = "Hello! Ready to take your career preparation to the next level? Ask me about job listings, coding challenges, or resume reviews.";
     }
     
-    const aiMsg = { id: Date.now() + 1, sender: 'ai', messageText: aiResponseText, createdAt: new Date().toISOString() };
+    const aiMsg = { id: Date.now() + 1, sender: 'AI', message: aiResponseText, timestamp: new Date().toISOString() };
     
-    sessions[sessionIndex].messages.push(userMsg, aiMsg);
+    // Map existing session messages to latest schema first
+    const mappedMessages = (sessions[sessionIndex].messages || []).map(mapChatMessage);
+    mappedMessages.push(userMsg, aiMsg);
+    
+    sessions[sessionIndex].messages = mappedMessages;
     setStorageItem('mock_sessions', sessions);
     
-    return { userMessage: userMsg, aiMessage: aiMsg };
+    return mapChatMessage(aiMsg);
   },
   
   deleteSession: async (sessionId) => {
@@ -216,7 +283,22 @@ export const mockChatApi = {
   searchHistory: async (query) => {
     await delay(300);
     const sessions = getStorageItem('mock_sessions', []);
-    return sessions.filter(s => s.title.toLowerCase().includes(query.toLowerCase()));
+    const matches = [];
+    for (const session of sessions) {
+      const mapped = mapChatSession(session);
+      for (const msg of mapped.messages) {
+        if (msg.message.toLowerCase().includes(query.toLowerCase())) {
+          matches.push({
+            id: msg.id,
+            chatSessionId: session.id,
+            sender: msg.sender,
+            message: msg.message,
+            timestamp: msg.timestamp
+          });
+        }
+      }
+    }
+    return matches;
   }
 };
 
@@ -245,13 +327,14 @@ export const mockResumeApi = {
     
     return {
       message: 'Resume analyzed successfully.',
-      analysis: mockAnalysis
+      analysis: mapResumeRecord(mockAnalysis)
     };
   },
   
   getHistory: async () => {
     await delay(400);
-    return getStorageItem('mock_resumes', []);
+    const history = getStorageItem('mock_resumes', []);
+    return history.map(mapResumeRecord);
   },
   
   getDetails: async (id) => {
@@ -259,20 +342,22 @@ export const mockResumeApi = {
     const history = getStorageItem('mock_resumes', []);
     const item = history.find(h => h.id === Number(id));
     if (!item) throw new Error('Analysis report not found');
-    return item;
+    return mapResumeRecord(item);
   }
 };
 
 export const mockInterviewApi = {
   getSessions: async () => {
     await delay(300);
-    return getStorageItem('mock_interviews', []);
+    const interviews = getStorageItem('mock_interviews', []);
+    return interviews.map(mapInterviewSession);
   },
   
   getSessionDetails: async (id) => {
     await delay(300);
     const interviews = getStorageItem('mock_interviews', []);
-    return interviews.find(i => i.id === Number(id));
+    const session = interviews.find(i => i.id === Number(id));
+    return mapInterviewSession(session);
   },
   
   startSession: async (technology) => {
@@ -283,15 +368,15 @@ export const mockInterviewApi = {
         { id: 102, questionText: 'What is the difference between UseState and UseRef hooks? When should you use which?', codeSnippet: '' },
         { id: 103, questionText: 'Explain React Context API and how it prevents prop drilling.', codeSnippet: '' }
       ],
-      'C#': [
+      'C# & ASP.NET Core': [
         { id: 201, questionText: 'Explain the difference between interface inheritance and class inheritance in C#.', codeSnippet: '' },
         { id: 202, questionText: 'What are async and await keywords? How do they help avoid UI blocking?', codeSnippet: '' },
-        { id: 203, questionText: 'What is the difference between IEnumerable and IQueryable in Entity Framework?', codeSnippet: '' }
+        { id: 203, questionText: 'What is the difference between IEnumerable and IQueryable in Entity Framework Core?', codeSnippet: '' }
       ],
-      JavaScript: [
-        { id: 301, questionText: 'What is closures in JavaScript? Can you give an example?', codeSnippet: '' },
-        { id: 302, questionText: 'Explain event delegation and event bubbling.', codeSnippet: '' },
-        { id: 303, questionText: 'What are promises, and how do they differ from callback functions?', codeSnippet: '' }
+      'SQL & Databases': [
+        { id: 301, questionText: 'Explain the difference between clustered and non-clustered indexes in SQL Server.', codeSnippet: '' },
+        { id: 302, questionText: 'What are database normalization rules (1NF, 2NF, 3NF)? Explain with examples.', codeSnippet: '' },
+        { id: 303, questionText: 'Explain outer joins vs inner joins and their performance differences.', codeSnippet: '' }
       ]
     };
     
@@ -305,15 +390,21 @@ export const mockInterviewApi = {
       technology,
       startedAt: new Date().toISOString(),
       isCompleted: false,
-      questions: activeQuestions,
-      answers: []
+      questions: activeQuestions.map(q => ({
+        id: q.id,
+        questionText: q.questionText,
+        userAnswer: null,
+        score: 0,
+        feedback: null
+      })),
+      overallScore: 0
     };
     
     const interviews = getStorageItem('mock_interviews', []);
     interviews.push(newSession);
     setStorageItem('mock_interviews', interviews);
     
-    return newSession;
+    return mapInterviewSession(newSession);
   },
   
   submitAnswer: async (questionId, answer) => {
@@ -327,7 +418,32 @@ export const mockInterviewApi = {
       feedback = "Excellent explanation of virtual DOM diffing and components patches! Very accurate.";
     }
     
-    return { score, feedback };
+    const interviews = getStorageItem('mock_interviews', []);
+    let updatedQuestion = null;
+    
+    for (let session of interviews) {
+      const q = session.questions.find(q => q.id === Number(questionId));
+      if (q) {
+        q.userAnswer = answer;
+        q.score = score;
+        q.feedback = feedback;
+        updatedQuestion = mapInterviewQuestion(q);
+        break;
+      }
+    }
+    
+    if (updatedQuestion) {
+      setStorageItem('mock_interviews', interviews);
+      return updatedQuestion;
+    }
+    
+    return {
+      id: Number(questionId),
+      questionText: 'Mock Interview Question',
+      userAnswer: answer,
+      score,
+      feedback
+    };
   },
   
   completeSession: async (id) => {
@@ -337,9 +453,15 @@ export const mockInterviewApi = {
     if (index !== -1) {
       interviews[index].isCompleted = true;
       interviews[index].completedAt = new Date().toISOString();
-      interviews[index].overallScore = Math.floor(Math.random() * 20) + 80;
+      
+      const gradedQuestions = interviews[index].questions.filter(q => q.score > 0);
+      const avgScore = gradedQuestions.length > 0
+        ? Math.round(gradedQuestions.reduce((acc, q) => acc + q.score, 0) / gradedQuestions.length)
+        : 75;
+        
+      interviews[index].overallScore = avgScore;
       setStorageItem('mock_interviews', interviews);
-      return interviews[index];
+      return mapInterviewSession(interviews[index]);
     }
     throw new Error('Interview not found');
   }
