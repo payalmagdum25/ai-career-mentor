@@ -34,7 +34,7 @@ api.interceptors.response.use(
   }
 );
 
-export const authApi = {
+const liveAuthApi = {
   login: async (email, password) => {
     const response = await api.post('/auth/login', { email, password });
     if (response.data.token) {
@@ -57,7 +57,7 @@ export const authApi = {
   },
 };
 
-export const profileApi = {
+const liveProfileApi = {
   getProfile: async () => {
     const response = await api.get('/profile');
     return response.data;
@@ -89,7 +89,7 @@ export const profileApi = {
   },
 };
 
-export const chatApi = {
+const liveChatApi = {
   getSessions: async () => {
     const response = await api.get('/chat');
     return response.data;
@@ -116,7 +116,7 @@ export const chatApi = {
   },
 };
 
-export const resumeApi = {
+const liveResumeApi = {
   analyze: async (file) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -137,7 +137,7 @@ export const resumeApi = {
   },
 };
 
-export const interviewApi = {
+const liveInterviewApi = {
   getSessions: async () => {
     const response = await api.get('/interview');
     return response.data;
@@ -160,7 +160,7 @@ export const interviewApi = {
   },
 };
 
-export const jobsApi = {
+const liveJobsApi = {
   getRecommendations: async (location) => {
     const url = location ? `/jobs/recommendations?location=${encodeURIComponent(location)}` : '/jobs/recommendations';
     const response = await api.get(url);
@@ -177,7 +177,7 @@ export const jobsApi = {
   },
 };
 
-export const codeApi = {
+const liveCodeApi = {
   getProblems: async () => {
     const response = await api.get('/code/problems');
     return response.data;
@@ -200,7 +200,7 @@ export const codeApi = {
   },
 };
 
-export const roadmapApi = {
+const liveRoadmapApi = {
   getRoadmap: async () => {
     const response = await api.get('/roadmap');
     return response.data;
@@ -215,11 +215,37 @@ export const roadmapApi = {
   },
 };
 
-export const dashboardApi = {
+const liveDashboardApi = {
   getStats: async () => {
     const response = await api.get('/dashboard/stats');
     return response.data;
   },
 };
+
+// Determine if we should use Mock API (e.g. if explicitly set, or if running in production without VITE_API_BASE_URL)
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || 
+  (window.location.hostname !== 'localhost' && !import.meta.env.VITE_API_BASE_URL);
+
+import {
+  mockAuthApi,
+  mockProfileApi,
+  mockChatApi,
+  mockResumeApi,
+  mockInterviewApi,
+  mockJobsApi,
+  mockCodeApi,
+  mockRoadmapApi,
+  mockDashboardApi
+} from './mockApi';
+
+export const authApi = USE_MOCK ? mockAuthApi : liveAuthApi;
+export const profileApi = USE_MOCK ? mockProfileApi : liveProfileApi;
+export const chatApi = USE_MOCK ? mockChatApi : liveChatApi;
+export const resumeApi = USE_MOCK ? mockResumeApi : liveResumeApi;
+export const interviewApi = USE_MOCK ? mockInterviewApi : liveInterviewApi;
+export const jobsApi = USE_MOCK ? mockJobsApi : liveJobsApi;
+export const codeApi = USE_MOCK ? mockCodeApi : liveCodeApi;
+export const roadmapApi = USE_MOCK ? mockRoadmapApi : liveRoadmapApi;
+export const dashboardApi = USE_MOCK ? mockDashboardApi : liveDashboardApi;
 
 export default api;
