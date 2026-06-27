@@ -671,16 +671,96 @@ export const mockRoadmapApi = {
 export const mockDashboardApi = {
   getStats: async () => {
     await delay(300);
+    
+    // 1. Resume Score
+    const resumes = getStorageItem('mock_resumes', []).map(mapResumeRecord);
+    const latestResume = resumes.length > 0 ? resumes[resumes.length - 1] : null;
+    const resumeScore = latestResume ? latestResume.resumeScore : 0;
+    
+    // 2. Interview Score
+    const interviews = getStorageItem('mock_interviews', []).map(mapInterviewSession);
+    const latestInterview = interviews.length > 0 ? interviews[interviews.length - 1] : null;
+    const interviewScore = latestInterview ? latestInterview.score : 0;
+    
+    // 3. Learning Progress
     const roadmap = getStorageItem('mock_roadmap', []);
     const completedTasks = roadmap.filter(t => t.completed).length;
     const totalTasks = roadmap.length;
-    const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const learningProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    
+    // 4. Streak
+    const dailyStreak = 5;
+    
+    // 5. Recent Activities
+    const recentActivities = [];
+    
+    // Add resumes
+    resumes.forEach(r => {
+      recentActivities.push({
+        type: 'Resume',
+        title: `Analyzed Resume: ${r.fileName}`,
+        status: `Score: ${r.resumeScore}/100`,
+        date: r.createdDate
+      });
+    });
+    
+    // Add interviews
+    interviews.forEach(i => {
+      recentActivities.push({
+        type: 'Interview',
+        title: `Completed ${i.technology} Mock Interview`,
+        status: `Score: ${i.score}%`,
+        date: i.startedAt
+      });
+    });
+    
+    // Add submissions
+    const submissions = getStorageItem('mock_submissions', []);
+    submissions.forEach(s => {
+      recentActivities.push({
+        type: 'Coding',
+        title: `Submitted solution for ${s.problemTitle}`,
+        status: s.status,
+        date: s.submittedDate
+      });
+    });
+    
+    // Sort desc by date
+    const sortedActivities = recentActivities
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 5);
+      
+    // 6. Upcoming Tasks (take 4 uncompleted)
+    const upcomingTasks = roadmap
+      .filter(t => !t.completed)
+      .slice(0, 4)
+      .map(t => ({
+        id: t.id,
+        task: t.task,
+        period: t.period,
+        targetDate: t.targetDate || new Date().toISOString()
+      }));
+      
+    // 7. Chart Data (interviews over time, fallback to defaults for visuals if empty)
+    let chartData = interviews.map(i => ({
+      label: i.technology,
+      score: i.score
+    }));
+    if (chartData.length === 0) {
+      chartData = [
+        { label: 'React', score: 80 },
+        { label: 'C# & .NET', score: 75 }
+      ];
+    }
     
     return {
-      streakDays: 5,
-      progressPercentage,
-      completedTasks,
-      pendingTasks: totalTasks - completedTasks
+      resumeScore,
+      interviewScore,
+      learningProgress,
+      dailyStreak,
+      recentActivities: sortedActivities,
+      upcomingTasks,
+      chartData
     };
   }
 };
