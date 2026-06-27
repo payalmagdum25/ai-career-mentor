@@ -227,17 +227,15 @@ export const mockResumeApi = {
     const mockAnalysis = {
       id: Date.now(),
       fileName: file ? file.name : 'resume.pdf',
-      atsScore: score,
-      analyzedDate: new Date().toISOString(),
-      feedback: {
-        structure: score > 75 ? 'Good formatting, clear sections.' : 'Consider using a single-column layout. Avoid sidebars, graphs, or tables as ATS scanners often misread them.',
-        keywords: 'Detected React, JavaScript, Git. Missing: Redux, TypeScript, Docker.',
-        verbs: 'Good use of action verbs like "developed", "built", "implemented". Try adding metrics (e.g., "by 15%").'
-      },
-      suggestions: [
-        'Add a specialized skills section at the top.',
-        'Use the STAR format to detail your bullet points.',
-        'Include keyword matches for "Rest APIs" and "State Management".'
+      resumeScore: score,
+      createdDate: new Date().toISOString(),
+      feedbacks: [
+        { category: 'Structure', suggestion: score > 75 ? 'Good formatting, clear sections.' : 'Consider using a single-column layout. Avoid sidebars, graphs, or tables as ATS scanners often misread them.' },
+        { category: 'Keywords', suggestion: 'Detected React, JavaScript, Git. Missing: Redux, TypeScript, Docker.' },
+        { category: 'Verbs', suggestion: 'Good use of action verbs like "developed", "built", "implemented". Try adding metrics (e.g., "by 15%").' },
+        { category: 'Formatting', suggestion: 'Add a specialized skills section at the top.' },
+        { category: 'Structure', suggestion: 'Use the STAR format to detail your bullet points.' },
+        { category: 'Keywords', suggestion: 'Include keyword matches for "Rest APIs" and "State Management".' }
       ]
     };
     
@@ -245,7 +243,10 @@ export const mockResumeApi = {
     history.push(mockAnalysis);
     setStorageItem('mock_resumes', history);
     
-    return mockAnalysis;
+    return {
+      message: 'Resume analyzed successfully.',
+      analysis: mockAnalysis
+    };
   },
   
   getHistory: async () => {
